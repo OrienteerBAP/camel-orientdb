@@ -68,6 +68,13 @@
     </dependency>
 
     <!-- testing -->
+	<dependency>
+		<groupId>com.orientechnologies</groupId>
+		<artifactId>orientdb-server</artifactId>
+		<version>${orientdb.version}</version>
+		<type>bundle</type>
+		<scope>test</scope>
+	</dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-test</artifactId>
@@ -78,7 +85,34 @@
 
   <build>
     <defaultGoal>install</defaultGoal>
-
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<includes>
+					<include>**</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
     <plugins>
       
       <plugin>

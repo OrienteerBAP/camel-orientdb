@@ -56,6 +56,12 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	@UriParam(defaultValue = "true")
 	private boolean makeNew = true;
 
+	@UriParam(defaultValue = "rid")
+	private String recordIdField = "rid";
+
+	@UriParam(defaultValue = "class")
+	private String classField = "class";
+
 	protected OrientDBEndpoint(String endpointUri,Component component,String remaining, Map<String, Object> parameters ) {
 		super(endpointUri,component);
 		this.sqlQuery = remaining;
@@ -94,21 +100,15 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	//should be called to open new connection
 	@SuppressWarnings("resource")
-	public ODatabaseDocument databaseOpen(){
+	public ODatabaseDocument databaseOpen() throws Exception{
 		String url = getCamelContext().getProperty(OrientDBComponent.DB_URL);
 		String username = getCamelContext().getProperty(OrientDBComponent.DB_USERNAME);
 		String password = getCamelContext().getProperty(OrientDBComponent.DB_PASSWORD);
 		
 		if(url!=null && username!=null) {
-			//IOrientDbSettings settings = OrienteerWebApplication.lookupApplication().getOrientDbSettings();
-			//if(url==null) url = settings.getDBUrl();
-			//if(username==null) {
-			//	username = settings.getGuestUserName();
-			//	password = settings.getGuestPassword();
-			//}
 			return new ODatabaseDocumentTx(url).open(username, password);
-		} else {
-			return ODatabaseRecordThreadLocal.INSTANCE.get();
+		}else{
+			throw new Exception("Cannot connect to OrientDB server without properties "+OrientDBComponent.DB_URL+" and "+OrientDBComponent.DB_USERNAME);
 		}
 	}
 	
@@ -117,24 +117,16 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 		db.close();
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object makeOutObject(Object rawOut) throws Exception{
-		if (rawOut instanceof Iterable){
+		if (rawOut instanceof ODocument){
+			return getOutFromODocument((ODocument)rawOut);
+		}else if (rawOut instanceof Iterable){
 			List<Object> resultArray = new ArrayList<Object>();
 			Iterable<?> tmpset = (Iterable<?>) rawOut;
 			for (Object object : tmpset) {
 				if (object instanceof ODocument){
-					ODocument doc = ((ODocument)object);
-					if (outputType.equals(OrientDBCamelDataType.map)){
-						resultArray.add(toMap(doc));
-					}else if (outputType.equals(OrientDBCamelDataType.json)){
-						resultArray.add(toJSON(doc));//doc.toJSON("fetchPlan:"+getFetchPlan()));
-					}else if (outputType.equals(OrientDBCamelDataType.object)){
-						resultArray.add(toObject(doc));
-					}else if (outputType.equals(OrientDBCamelDataType.list)){
-						resultArray.add(toList(doc));
-					}else{
-						throw new Exception("Unknown outputType :"+outputType.toString());
-					}
+					resultArray.add(getOutFromODocument((ODocument)object));
 				//}else if(object instanceof OIdentifiable){
 				//	resultArray.add(((OIdentifiable)object).getIdentity().toString());
 				}else{
@@ -150,6 +142,21 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 			return rawOut;
 		}
 	}
+	
+	private Object getOutFromODocument(ODocument doc) throws Exception{
+		if (outputType.equals(OrientDBCamelDataType.map)){
+			return toMap(doc);
+		}else if (outputType.equals(OrientDBCamelDataType.json)){
+			return toJSON(doc);//doc.toJSON("fetchPlan:"+getFetchPlan()));
+		}else if (outputType.equals(OrientDBCamelDataType.object)){
+			return toObject(doc);
+		}else if (outputType.equals(OrientDBCamelDataType.list)){
+			return toList(doc);
+		}else{
+			throw new Exception("Unknown outputType :"+outputType.toString());
+		}
+	} 
+	
 	
 	private Object toJSON(ODocument obj){
 		if (Strings.isEmpty(getFetchPlan())){
@@ -197,11 +204,11 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 			}
 		    final ORID id = objDoc.getIdentity();
 		    if (id.isValid() && id.isPersistent() )
-		    	result.put(ODocumentHelper.ATTRIBUTE_RID, id.toString());
+		    	result.put(getRecordIdField(), id.toString());
 
 			final String className = objDoc.getClassName();
 			if (className != null)
-				result.put(ODocumentHelper.ATTRIBUTE_CLASS, className);
+				result.put(getClassField(), className);
 			return result;
 		}else if(obj instanceof Map){
     		Map<String,Object> result = new HashMap<String,Object>();
@@ -241,7 +248,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	}
 
 	/**
-	 * Rewrite "@class" field in root document(s) 
+	 * Rewrite "@class" field value in root document(s) 
 	 */
 	public void setInputAsOClass(String inputAsOClass) {
 		this.inputAsOClass = inputAsOClass;
@@ -301,6 +308,29 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	public void setFetchAllEmbedded(boolean fetchAllEmbedded) {
 		this.fetchAllEmbedded = fetchAllEmbedded;
 	}
+
+	public String getRecordIdField() {
+		return recordIdField;
+	}
+
+	/**
+	 * Your "@rid" renamed to recordIdField value  
+	 */
+	public void setRecordIdField(String recordIdField) {
+		this.recordIdField = recordIdField;
+	}
+
+	public String getClassField() {
+		return classField;
+	}
+
+	/**
+	 * Your "@class" renamed to classField value  
+	 */
+	public void setClassField(String classField) {
+		this.classField = classField;
+	}
+
 
 
 

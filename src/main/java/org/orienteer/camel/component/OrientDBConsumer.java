@@ -23,11 +23,13 @@ public class OrientDBConsumer extends DefaultConsumer{
 		ODatabaseDocument db = endpoint.databaseOpen();
 		Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute();
 		
+		Object out = endpoint.makeOutObject(dbResult);
+		endpoint.databaseClose(db);
+		
 		Exchange exchange = getEndpoint().createExchange();
-		exchange.getIn().setBody(endpoint.makeOutObject(dbResult));
+		exchange.getIn().setBody(out);
 		getProcessor().process(exchange);
 		
 		super.doStart();
-		endpoint.databaseClose(db);
 	}
 }

@@ -101,7 +101,7 @@ public class OrientDBProducer extends DefaultProducer{
 		ODocument inputDocument = null;
 		if (input instanceof Map){
 			if (!Strings.isEmpty(endpoint.getInputAsOClass())){
-				((Map<Object,Object>)input).put(ODocumentHelper.ATTRIBUTE_CLASS,endpoint.getInputAsOClass());
+				((Map<Object,Object>)input).put(getOrientDBEndpoint().getClassField(),endpoint.getInputAsOClass());
 			}
 			inputDocument = (ODocument) fromMap(input);
 		}else if(input instanceof ODocument){
@@ -113,14 +113,15 @@ public class OrientDBProducer extends DefaultProducer{
 			if (!Strings.isEmpty(endpoint.getInputAsOClass())){
 				inputDocument.setClassName(endpoint.getInputAsOClass());
 			}
-			if (endpoint.isMakeNew()){
-				inputDocument.getIdentity().reset();
-			}
 			if(endpoint.isPreload()){
+				if (endpoint.isMakeNew()){
+					inputDocument.getIdentity().reset();
+				}
 				inputDocument.save();
 			}
 			if (!Strings.isEmpty(endpoint.getSQLQuery())){
-				Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute(inputDocument.toMap());
+				Map<String, Object> tmp = toParamMap(inputDocument);
+				Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute(tmp);
 				return dbResult;
 			}
 			return inputDocument;
@@ -150,13 +151,18 @@ public class OrientDBProducer extends DefaultProducer{
 	private Object fromMap(Object input){
 		if (input instanceof Map){//something like ODocument
 			Map<?, ?> objMap = (Map<?,?>)input;
-			String rid = (String)(objMap.remove(ODocumentHelper.ATTRIBUTE_RID));
-			String clazz = (String)(objMap.remove(ODocumentHelper.ATTRIBUTE_CLASS));
+			String rid = (String)(objMap.remove(getOrientDBEndpoint().getRecordIdField()));
+			String clazz = (String)(objMap.remove(getOrientDBEndpoint().getClassField()));
 			if (rid!=null || clazz!=null){
 				ODocument result=null;
 				if (rid!=null && clazz!=null && objMap.isEmpty()){ //it is document link
 					result = new ODocument(clazz,new ORecordId(rid));
-				}else if (clazz!=null && (rid==null || ((OrientDBEndpoint)getEndpoint()).isMakeNew() )){//it is embedded or new document  
+				}else if (clazz!=null &&
+						(	rid==null || 
+							((OrientDBEndpoint)getEndpoint()).isMakeNew() && ((OrientDBEndpoint)getEndpoint()).isPreload()
+						)
+					){//it is embedded or new document
+					
 					result = new ODocument(clazz);
 				}else if (rid!=null && clazz!=null){ //it is document
 					result = new ODocument(clazz,new ORecordId(rid));
@@ -196,5 +202,21 @@ public class OrientDBProducer extends DefaultProducer{
 
 	private ODocument fromObject(ODocument input,OrientDBEndpoint endpoint,ODatabaseDocument db){
 		return input;
+	}
+	
+	private Map<String, Object> toParamMap(ODocument input){
+		Map<String, Object> out = input.toMap();
+		if (out.containsKey(ODocumentHelper.ATTRIBUTE_RID)){
+			out.put(getOrientDBEndpoint().getRecordIdField(), out.remove(ODocumentHelper.ATTRIBUTE_RID));
+		}
+		if (out.containsKey(ODocumentHelper.ATTRIBUTE_CLASS)){
+			out.put(getOrientDBEndpoint().getClassField(), out.remove(ODocumentHelper.ATTRIBUTE_CLASS));
+		}
+		
+		return out;
+	}
+	
+	private OrientDBEndpoint getOrientDBEndpoint(){
+		return (OrientDBEndpoint)getEndpoint();
 	}
 }
