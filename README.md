@@ -85,11 +85,11 @@ This endpoint just load input Map`s and trying to create new objects from them.
 
 |Type|Transfer to query input as|Can be preloaded|
 |---|---|---|
-|ODocument|Map<String,Object>|true
-|Map<String,Object>|Map<String,Object>|true
-|List<ODocument>|Map<String,Object>|true
-|List<Map<String,Object>>|Map<String,Object>|true
-|List<Object>|Object|false
+|`ODocument`|`Map<String,Object>`|true
+|`Map<String,Object>`|`Map<String,Object>`|true
+|`List<ODocument>`|`Map<String,Object>`|true
+|`List<Map<String,Object>>`|`Map<String,Object>`|true
+|`List<Object>`|`Object`|false
 
 ##Output
 
@@ -99,10 +99,10 @@ This endpoint just load input Map`s and trying to create new objects from them.
 
 |outputType/query result|ODocument|List<ODocument>|Object|
 |---|---|---|---|
-|map|Map<String,Object>|List<Map<String,Object>>|Object
-|object|ODocument|List<ODocument>|Object
-|json|(String)OrientDB Json|List<(String)OrientDB Json>|Object
-|list|List<String>|List<List<String>>|Object
+|map|`Map<String,Object>`|`List<Map<String,Object>>`|Object
+|object|`ODocument`|`List<ODocument>`|Object
+|json|`(String)OrientDB Json`|`List<(String)OrientDB Json>`|Object
+|list|`List<String>`|`List<List<String>>`|Object
 
 
 
