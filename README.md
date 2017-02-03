@@ -70,11 +70,7 @@ This endpoint just load input Map`s and trying to create new objects from them.
 |fetchAllEmbedded 	|parameter 	|common 		|true 	|boolean 		|Fetch all embedded(not linked) objects, ignore "maxDepth". Only for "map" type.
 |fetchPlan 	|parameter 	|common 			|java.lang.String 		|Set fetch plan (view OrientDB documentation, like http://orientdb.com/docs/2.0/orientdb.wiki/Fetching-Strategies.html)
 |maxDepth 	|parameter 	|common 		|0 	|int 		|Max fetch depth. Only for "map" type
-|outputType 	|parameter 	|common 		|map 	|org.orienteer.camel.component.OrientDBCamelDataType 	
-|map
-object
-json
-list 	|Output data type of single row.
+|outputType 	|parameter 	|common 		|map 	|org.orienteer.camel.component.OrientDBCamelDataType |map/object/json/list 	|Output data type of single row.
 |recordIdField 	|parameter 	|common 		|rid 	|java.lang.String 		|Your "@rid" renamed to recordIdField value
 |inputAsOClass 	|parameter 	|consumer 			|java.lang.String 		|Rewrite "@class" field value in root document(s)
 |makeNew 	|parameter 	|consumer 		|true 	|boolean 		|Clear ODocuments RID`s in PRELOAD phase BEFORE save.Works only if ***preload=true***
