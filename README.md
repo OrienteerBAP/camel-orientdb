@@ -65,14 +65,14 @@ This endpoint just load input Map`s and trying to create new objects from them.
 
 |Name 	|Kind 	|Group 	|Required 	|Default 	|Type 	|Enum 	|Description|
 |---|---|---|---|---|---|---|---|
-|sqlQuery| 	path 	|common 	|false 		|java.lang.String 		|Sets the query to execute
+|sqlQuery| 	path 	|common 	|false 		| |java.lang.String 		|Sets the query to execute
 |classField 	|parameter 	|common|false  		|class 	|java.lang.String 		|Your "@class" renamed to classField value
 |fetchAllEmbedded 	|parameter 	|common|false  		|true 	|boolean 		|Fetch all embedded(not linked) objects, ignore "maxDepth". Only for "map" type.
-|fetchPlan 	|parameter 	|common|false  			|java.lang.String 		|Set fetch plan (view OrientDB documentation, like http://orientdb.com/docs/2.0/orientdb.wiki/Fetching-Strategies.html)
+|fetchPlan 	|parameter 	|common|false  			| |java.lang.String 		|Set fetch plan (view OrientDB documentation, like http://orientdb.com/docs/2.0/orientdb.wiki/Fetching-Strategies.html)
 |maxDepth 	|parameter 	|common|false 		|0 	|int 		|Max fetch depth. Only for "map" type
 |outputType 	|parameter 	|common|false  		|map 	|org.orienteer.camel.component.OrientDBCamelDataType |map/object/json/list 	|Output data type of single row.
 |recordIdField 	|parameter 	|common|false 		|rid 	|java.lang.String 		|Your "@rid" renamed to recordIdField value
-|inputAsOClass 	|parameter 	|consumer|false 			|java.lang.String 		|Rewrite "@class" field value in root document(s)
+|inputAsOClass 	|parameter 	|consumer|false 		| |java.lang.String 		|Rewrite "@class" field value in root document(s)
 |makeNew 	|parameter 	|consumer|false  		|true 	|boolean 		|Clear ODocuments RID`s in PRELOAD phase BEFORE save.Works only if ***preload=true***
 |preload 	|parameter 	|consumer|false 		|false 	|boolean 		|Trying to save ODocument from input data BEFORE query
 
