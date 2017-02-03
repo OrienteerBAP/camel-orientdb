@@ -47,13 +47,13 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	@UriParam(defaultValue = "true")
 	private boolean fetchAllEmbedded = true;
 	
-	@UriParam
+	@UriParam(label = "consumer")
 	private String inputAsOClass;
 
-	@UriParam(defaultValue = "false")
+	@UriParam(defaultValue = "false",label = "consumer")
 	private boolean preload = false;
 
-	@UriParam(defaultValue = "true")
+	@UriParam(defaultValue = "true",label = "consumer")
 	private boolean makeNew = true;
 
 	@UriParam(defaultValue = "rid")

@@ -34,11 +34,10 @@ public class OrientDBComponentTest extends CamelTestSupport {
 		
 	@Override
 	protected void doPreSetup() throws Exception {
-		// TODO Auto-generated method stub
         server = OServerMain.create();
         server.startup(getClass().getResourceAsStream("db.config.xml"));
         server.activate();
-        //server.
+
         ODatabaseDocumentTx db = new ODatabaseDocumentTx(DB_URL,false);
 		db = db.create();
 		db.command(new OCommandSQL("CREATE CLASS "+TEST_CLASS)).execute();
@@ -46,7 +45,6 @@ public class OrientDBComponentTest extends CamelTestSupport {
 		db.command(new OCommandSQL("CREATE PROPERTY "+TEST_CLASS+"."+TEST_LINK_PROPERTY+" LINK")).execute();
 		db.command(new OCommandSQL("CREATE CLASS "+TEST_LINKED_CLASS)).execute();
 		db.command(new OCommandSQL("CREATE PROPERTY "+TEST_LINKED_CLASS+"."+TEST_PROPERTY+" STRING")).execute();
-		//db.command(new OCommandSQL("INSERT INTO "+TEST_LINKED_CLASS+" SET "+TEST_PROPERTY+"=\""+TEST_PROPERTY_VALUE+"\"")).execute();
 		
 		db.close();
         Thread.sleep(1000);
@@ -80,9 +78,7 @@ public class OrientDBComponentTest extends CamelTestSupport {
     			from("orientdb:INSERT INTO "+TEST_LINKED_CLASS+" SET "+TEST_PROPERTY+"=\""+TEST_PROPERTY_VALUE+"\"?outputType=map&preload=false")
     			.to("orientdb:INSERT INTO "+TEST_CLASS+" SET "+TEST_PROPERTY+"=\""+TEST_PROPERTY_VALUE+"\", "+TEST_LINK_PROPERTY+"=:rid")
     			.to("orientdb:?preload=true&makeNew=true")
-    			
-                //  .to("orientdb://bar")
-                	.to("mock:result");
+               	.to("mock:result");
             }
         };
     }
