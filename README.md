@@ -92,6 +92,7 @@ If you need process only one parametrized element, use Map, ODocument or List<Li
 ##Output
 
 ***NOTE*** All output conversions are recursive, or convert output into flat structures
+***IMPORTANT NOTE*** If result of sql query is list and before you sent List<ODocument>(as example) to input, then results of all queries will be joined into one big List  
 
 |outputType/query result|ODocument|List<ODocument>|Object|
 |---|---|---|---|
