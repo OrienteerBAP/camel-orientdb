@@ -1,5 +1,8 @@
 # camel-orientdb
 Camel component for OrientDB. For Camel since ***2.17.3*** and later.
+
+
+##Maven
 For injecting Maven depedency use this code:
 
 ```
@@ -78,8 +81,7 @@ This endpoint just load input Map`s and trying to create new objects from them.
 
 ##Input
 
-***NOTE*** All first-level lists split to elements and OrientDBSQLQuery evals for EVERY element 
-If you need process only one parametrized element, use Map, ODocument or List<List> with one element in
+***NOTE*** All first-level lists split to elements and OrientDBSQLQuery evals for EVERY element. If you need process only one parametrized element, use Map, ODocument or List<List> with one element in
 
 |Type|Transfer to query input as|Can be preloaded|
 |---|---|---|
@@ -91,8 +93,9 @@ If you need process only one parametrized element, use Map, ODocument or List<Li
 
 ##Output
 
-***NOTE*** All output conversions are recursive, or convert output into flat structures
-***IMPORTANT NOTE*** If result of sql query is list and before you sent List<ODocument>(as example) to input, then results of all queries will be joined into one big List  
+***NOTE***  All output conversions are recursive, or convert output into flat structures
+
+***IMPORTANT NOTE***  If result of sql query is list and before you sent List<ODocument>(as example) to input, then results of all queries will be joined into one big List  
 
 |outputType/query result|ODocument|List<ODocument>|Object|
 |---|---|---|---|
