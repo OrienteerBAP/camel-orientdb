@@ -14,7 +14,7 @@ import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
-import org.apache.wicket.util.string.Strings;
+import org.apache.camel.tools.apt.helper.Strings;
 
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
@@ -117,7 +117,6 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 		db.close();
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object makeOutObject(Object rawOut) throws Exception{
 		if (rawOut instanceof ODocument){
 			return getOutFromODocument((ODocument)rawOut);
@@ -134,7 +133,17 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 				}
 			}
 			if (outputType.equals(OrientDBCamelDataType.json)){
-				return "["+Strings.join(",", (List)resultArray)+"]";
+				if(resultArray == null || resultArray.isEmpty()) return "[]";
+				else {
+					StringBuilder sb = new StringBuilder(128);
+					sb.append("[");
+					for(Object obj : resultArray) {
+						sb.append(obj).append(",");
+					}
+					sb.setLength(sb.length()-1);
+					sb.append("]");
+					return sb.toString();
+				}
 			}else{
 				return resultArray;
 			}
@@ -159,7 +168,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	
 	
 	private Object toJSON(ODocument obj){
-		if (Strings.isEmpty(getFetchPlan())){
+		if (Strings.isNullOrEmpty(getFetchPlan())){
 			return obj.toJSON();
 		}else{
 			return obj.toJSON("fetchPlan:"+getFetchPlan());

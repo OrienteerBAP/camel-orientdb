@@ -2,6 +2,7 @@ package org.orienteer.camel.component;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultProducer;
+import org.apache.camel.tools.apt.helper.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,6 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.impl.DefaultProducer;
-import org.apache.wicket.util.string.Strings;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.id.ORecordId;
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -100,7 +100,7 @@ public class OrientDBProducer extends DefaultProducer{
 	private Object processSingleObject(Object input,OrientDBEndpoint endpoint,ODatabaseDocument db) throws Exception{
 		ODocument inputDocument = null;
 		if (input instanceof Map){
-			if (!Strings.isEmpty(endpoint.getInputAsOClass())){
+			if (!Strings.isNullOrEmpty(endpoint.getInputAsOClass())){
 				((Map<Object,Object>)input).put(getOrientDBEndpoint().getClassField(),endpoint.getInputAsOClass());
 			}
 			inputDocument = (ODocument) fromMap(input);
@@ -110,7 +110,7 @@ public class OrientDBProducer extends DefaultProducer{
 			inputDocument = fromJSON((String)input, endpoint, db);
 		}
 		if (inputDocument!=null){
-			if (!Strings.isEmpty(endpoint.getInputAsOClass())){
+			if (!Strings.isNullOrEmpty(endpoint.getInputAsOClass())){
 				inputDocument.setClassName(endpoint.getInputAsOClass());
 			}
 			if(endpoint.isPreload()){
@@ -119,14 +119,14 @@ public class OrientDBProducer extends DefaultProducer{
 				}
 				inputDocument.save();
 			}
-			if (!Strings.isEmpty(endpoint.getSQLQuery())){
+			if (!Strings.isNullOrEmpty(endpoint.getSQLQuery())){
 				Map<String, Object> tmp = toParamMap(inputDocument);
 				Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute(tmp);
 				return dbResult;
 			}
 			return inputDocument;
 		}else{
-			if (!Strings.isEmpty(endpoint.getSQLQuery())){
+			if (!Strings.isNullOrEmpty(endpoint.getSQLQuery())){
 				if (input instanceof List){
 					convertLinks((List<Object>)input);//without this method links assigment does not work
 					Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute(((List<?>)input).toArray());
@@ -171,7 +171,7 @@ public class OrientDBProducer extends DefaultProducer{
 				}
 				for (Entry<?, ?> entry : objMap.entrySet()) {
 					Object value = fromMap(entry.getValue());
-					if (value instanceof String && Strings.isEmpty((String)value)){
+					if (value instanceof String && Strings.isNullOrEmpty((String)value)){
 						value=null;	
 					}
 					result.field((String) entry.getKey(),value);

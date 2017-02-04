@@ -9,8 +9,7 @@ For injecting Maven depedency use this code:
 <dependency>
 	<groupId>org.orienteer.camel.component</groupId>
 	<artifactId>camel-orientdb</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <!-- Now we have just this version. It can be changed later. -->
+	<version>1.0-SNAPSHOT</version>
 </dependency>
 ```
 
