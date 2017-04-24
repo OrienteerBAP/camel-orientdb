@@ -3,6 +3,8 @@ Camel component for OrientDB. For Camel since ***2.17.6*** and later.
 
 
 ##Maven
+
+
 For injecting Maven depedency use this code:
 
 ```
@@ -13,7 +15,9 @@ For injecting Maven depedency use this code:
 </dependency>
 ```
 
+
 ##Initialization
+
 
 DB connection variables can be set using CamelContext properties, like 
 ```
@@ -40,11 +44,14 @@ But it can be change
 
 ##URI format
 
+
 The OrientDB component using following endpoint URI notation
+
 
 ```
 orientdb:[OrientDBSQLQuery][?options]
 ```
+
 
 And using OrientDB query format with minor changes:
 
@@ -63,7 +70,9 @@ orientdb:?preload=true&makeNew=true
 
 This endpoint just load input Map`s and trying to create new objects from them.
 
+
 ##Options
+
 
 |Name 	|Kind 	|Group 	|Required 	|Default 	|Type 	|Enum 	|Description|
 |---|---|---|---|---|---|---|---|
@@ -84,6 +93,7 @@ This endpoint just load input Map`s and trying to create new objects from them.
 
 ##Input
 
+
 ***NOTE*** All first-level lists split to elements and OrientDBSQLQuery evals for EVERY element. If you need process only one parametrized element, use Map, ODocument or List<List> with one element in
 
 |Type|Transfer to query input as|Can be preloaded|
@@ -94,7 +104,9 @@ This endpoint just load input Map`s and trying to create new objects from them.
 |`List<Map<String,Object>>`|`Map<String,Object>`|true
 |`List<Object>`|`Object`|false
 
+
 ##Output
+
 
 ***NOTE***  All output conversions are recursive, or convert output into flat structures
 
