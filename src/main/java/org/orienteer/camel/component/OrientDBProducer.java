@@ -15,11 +15,21 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.impl.DefaultProducer;
+
+import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
+import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.id.ORecordId;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
+import com.orientechnologies.orient.core.metadata.schema.OClass.ATTRIBUTES;
+import com.orientechnologies.orient.core.metadata.schema.OProperty;
+import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.query.OQuery;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.record.impl.ODocumentHelper;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.orientechnologies.orient.core.sql.query.OSQLQuery;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 
 /**
  *	Producer for {@link OrientDBEndpoint} 
@@ -28,6 +38,7 @@ import com.orientechnologies.orient.core.sql.OCommandSQL;
 
 public class OrientDBProducer extends DefaultProducer{
 
+	private ODatabase<?> curDb;
 	public OrientDBProducer(Endpoint endpoint) {
 		super(endpoint);
 	}
@@ -35,21 +46,22 @@ public class OrientDBProducer extends DefaultProducer{
 	@Override
 	public void process(Exchange exchange) throws Exception {
 		OrientDBEndpoint endpoint = (OrientDBEndpoint)getEndpoint();
-		ODatabaseDocument db = endpoint.databaseOpen();
+		curDb = endpoint.databaseOpen();
 		Object input = exchange.getIn().getBody();
 		Message out = exchange.getOut(); 
 		out.getHeaders().putAll(exchange.getIn().getHeaders());
 
 		
 		if (input instanceof List){
-			out.setBody(endpoint.makeOutObject(processList((List<?>)input, endpoint, db)));
+			out.setBody(endpoint.makeOutObject(processList((List<?>)input, endpoint, curDb)));
 		}else if (input instanceof String && isJSONList((String)input)){
 			List<String> inputList =  strToJSONsList((String)input);
-			out.setBody(endpoint.makeOutObject(processList(inputList, endpoint, db)));
+			out.setBody(endpoint.makeOutObject(processList(inputList, endpoint, curDb)));
 		}else{
-			out.setBody(endpoint.makeOutObject(processSingleObject(input, endpoint, db)));
+			out.setBody(endpoint.makeOutObject(processSingleObject(input, endpoint, curDb)));
 		}
-		endpoint.databaseClose(db);
+		endpoint.databaseClose(curDb);
+		curDb=null;
 	}
 	
 	private boolean isJSONList(String input){
@@ -83,7 +95,7 @@ public class OrientDBProducer extends DefaultProducer{
 		return result;		
 	}
 	
-	private List<Object> processList(List<?> inputList,OrientDBEndpoint endpoint,ODatabaseDocument db) throws Exception{
+	private List<Object> processList(List<?> inputList,OrientDBEndpoint endpoint,ODatabase<?> db) throws Exception{
 		List<Object> outputList = new ArrayList<Object>();
 		for (Object inputElement : inputList) {
 			Object dbResult = processSingleObject(inputElement,endpoint,db);
@@ -97,7 +109,7 @@ public class OrientDBProducer extends DefaultProducer{
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Object processSingleObject(Object input,OrientDBEndpoint endpoint,ODatabaseDocument db) throws Exception{
+	private Object processSingleObject(Object input,OrientDBEndpoint endpoint,ODatabase<?> db) throws Exception{
 		ODocument inputDocument = null;
 		if (input instanceof Map){
 			if (!Strings.isNullOrEmpty(endpoint.getInputAsOClass())){
@@ -128,7 +140,7 @@ public class OrientDBProducer extends DefaultProducer{
 		}else{
 			if (!Strings.isNullOrEmpty(endpoint.getSQLQuery())){
 				if (input instanceof List){
-					convertLinks((List<Object>)input);//without this method links assigment does not work
+					convertLinks((List<Object>)input);//without this method links assignment does not work
 					Object dbResult = db.command(new OCommandSQL(endpoint.getSQLQuery())).execute(((List<?>)input).toArray());
 					return dbResult;
 				}else{
@@ -148,6 +160,29 @@ public class OrientDBProducer extends DefaultProducer{
 		}
 	}
 	
+	private Object convertToCatalogLinkIfAble(Object value,OProperty fieldProperty,ODocument mainDoc){
+		String catalogsLinkNameAttribute = getOrientDBEndpoint().getCatalogsLinkAttr();//
+		String catalogsLinkName = getOrientDBEndpoint().getCatalogsLinkName();//
+		String catalogNameField = fieldProperty.getLinkedClass().getCustom(catalogsLinkNameAttribute); 
+		if (catalogNameField==null){
+			catalogNameField = catalogsLinkName;
+		}
+		List<OIdentifiable> catalogLinks = curDb.query(new OSQLSynchQuery<OIdentifiable>(
+				"select from "+fieldProperty.getLinkedClass().getName()+" where "+catalogNameField+"=?"), value);
+		if (catalogLinks.size()>0){
+			value = catalogLinks.get(0).getIdentity();
+		}else{
+			boolean updateCatalogs = getOrientDBEndpoint().isCatalogsUpdate();//
+			if (updateCatalogs){
+				ODocument catalogRecord = new ODocument(fieldProperty.getLinkedClass());
+				catalogRecord.field(catalogNameField,value);
+				catalogRecord.save(true);
+				value = catalogRecord.getIdentity();
+			}
+		}
+		return value;
+	}
+	
 	private Object fromMap(Object input){
 		if (input instanceof Map){//something like ODocument
 			Map<?, ?> objMap = (Map<?,?>)input;
@@ -162,7 +197,6 @@ public class OrientDBProducer extends DefaultProducer{
 							((OrientDBEndpoint)getEndpoint()).isMakeNew() && ((OrientDBEndpoint)getEndpoint()).isPreload()
 						)
 					){//it is embedded or new document
-					
 					result = new ODocument(clazz);
 				}else if (rid!=null && clazz!=null){ //it is document
 					result = new ODocument(clazz,new ORecordId(rid));
@@ -171,10 +205,21 @@ public class OrientDBProducer extends DefaultProducer{
 				}
 				for (Entry<?, ?> entry : objMap.entrySet()) {
 					Object value = fromMap(entry.getValue());
-					if (value instanceof String && Strings.isNullOrEmpty((String)value)){
-						value=null;	
+					String fieldName = (String) entry.getKey();
+					if (value instanceof String){
+						if (Strings.isNullOrEmpty((String)value)){
+							value=null;//clear empty strings
+						}else{
+							if (result.getSchemaClass()!=null){
+								OProperty fieldProperty = result.getSchemaClass().getProperty(fieldName);
+								if (fieldProperty!= null && OType.LINK.equals(fieldProperty.getType())){
+									value = convertToCatalogLinkIfAble(value, fieldProperty, result);	
+								}								
+							}					
+						}
 					}
-					result.field((String) entry.getKey(),value);
+
+					result.field(fieldName,value);
 				}
 				return result;
 			}else{//wow,it is just Map
@@ -194,13 +239,13 @@ public class OrientDBProducer extends DefaultProducer{
 		return input;		
 	}
 
-	private ODocument fromJSON(String input,OrientDBEndpoint endpoint,ODatabaseDocument db){
+	private ODocument fromJSON(String input,OrientDBEndpoint endpoint,ODatabase<?> db){
 		ODocument out = new ODocument();
 		out.fromJSON(input);
 		return out;
 	}
 
-	private ODocument fromObject(ODocument input,OrientDBEndpoint endpoint,ODatabaseDocument db){
+	private ODocument fromObject(ODocument input,OrientDBEndpoint endpoint,ODatabase<?> db){
 		return input;
 	}
 	

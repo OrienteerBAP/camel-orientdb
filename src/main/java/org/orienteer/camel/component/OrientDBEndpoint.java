@@ -16,10 +16,14 @@ import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.tools.apt.helper.Strings;
 
+import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
+import com.orientechnologies.orient.core.db.OPartitionedDatabasePoolFactory;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTxPooled;
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.record.ORecord;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.record.impl.ODocumentHelper;
 
@@ -30,6 +34,8 @@ import com.orientechnologies.orient.core.record.impl.ODocumentHelper;
 @UriEndpoint(scheme = "orientdb", syntax = "orientdb:sqlQuery", title = "OrientDB", label = "database,sql,orientdb") 
 public class OrientDBEndpoint extends DefaultEndpoint {
 
+	private static OPartitionedDatabasePoolFactory dbPool = new OPartitionedDatabasePoolFactory(); 
+	
 	private Map<String, Object> parameters;
 
 	@UriPath(description = "Sets the query to execute") @Metadata(required = "false")
@@ -61,6 +67,16 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	@UriParam(defaultValue = "class")
 	private String classField = "class";
+
+	//catalogs
+	@UriParam(defaultValue = "orienteer.prop.name")
+	private String catalogsLinkAttr;
+	
+	@UriParam(defaultValue = "name")
+	private String catalogsLinkName;
+	
+	@UriParam(defaultValue = "true")
+	private boolean catalogsUpdate;
 
 	protected OrientDBEndpoint(String endpointUri,Component component,String remaining, Map<String, Object> parameters ) {
 		super(endpointUri,component);
@@ -97,23 +113,24 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	public Map<String, Object> getParameters(){
 		return parameters;
 	}
-
+	
+	
 	//should be called to open new connection
-	@SuppressWarnings("resource")
-	public ODatabaseDocument databaseOpen() throws Exception{
+	//@SuppressWarnings("resource")
+	public ODatabase<?> databaseOpen() throws Exception{
 		String url = getCamelContext().getProperty(OrientDBComponent.DB_URL);
 		String username = getCamelContext().getProperty(OrientDBComponent.DB_USERNAME);
 		String password = getCamelContext().getProperty(OrientDBComponent.DB_PASSWORD);
 		
 		if(url!=null && username!=null) {
-			return new ODatabaseDocumentTx(url).open(username, password);
+			return dbPool.get(url, username, password).acquire();
 		}else{
 			throw new Exception("Cannot connect to OrientDB server without properties "+OrientDBComponent.DB_URL+" and "+OrientDBComponent.DB_USERNAME);
 		}
 	}
 	
 	//should be called to close existing connection
-	public void databaseClose(ODatabaseDocument db){
+	public void databaseClose(ODatabase<?> db){
 		db.close();
 	}
 	
@@ -338,6 +355,47 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	 */
 	public void setClassField(String classField) {
 		this.classField = classField;
+	}
+
+	public String getCatalogsLinkAttr() {
+		return catalogsLinkAttr;
+	}
+
+	/**
+	 * Name of your custom attribute,
+	 * linked to catalog class and containing name of field in this class,
+	 * associated to name of element of this class 
+	 * 
+	 */
+	public void setCatalogsLinkAttr(String catalogsLinkAttr) {
+		this.catalogsLinkAttr = catalogsLinkAttr;
+	}
+
+	public String getCatalogsLinkName() {
+		return catalogsLinkName;
+	}
+
+	/**
+	 * If you not use "catalogsLinkAttr",
+	 * you can set field name of "name" element in catalogs class directly here
+	 * 
+	 */
+	public void setCatalogsLinkName(String catalogsLinkName) {
+		this.catalogsLinkName = catalogsLinkName;
+	}
+
+	public boolean isCatalogsUpdate() {
+		return catalogsUpdate;
+	}
+
+	/**
+	 * If you set "catalogsLinkAttr" or "catalogsLinkName", catalogs may be autoupdated,
+	 * if "catalogsUpdate" = true.
+	 * If is that - in catalogs classes may be created empty elements with new "name" field values.
+	 */
+	
+	public void setCatalogsUpdate(boolean catalogsUpdate) {
+		this.catalogsUpdate = catalogsUpdate;
 	}
 
 

@@ -1,5 +1,5 @@
 # camel-orientdb
-Camel component for OrientDB. For Camel since ***2.17.3*** and later.
+Camel component for OrientDB. For Camel since ***2.17.6*** and later.
 
 
 ##Maven
@@ -68,6 +68,9 @@ This endpoint just load input Map`s and trying to create new objects from them.
 |Name 	|Kind 	|Group 	|Required 	|Default 	|Type 	|Enum 	|Description|
 |---|---|---|---|---|---|---|---|
 |sqlQuery| 	path 	|common 	|false 		| |java.lang.String | 		|Sets the query to execute
+|catalogsLinkAttr| 	parameter| 	common| 	|	orienteer.prop.name| 	java.lang.String |		|Name of your custom attribute, linked to catalog class and containing name of field in this class, associated to name of element of this class
+|catalogsLinkName| 	parameter| 	common| 	|	name| 	java.lang.String| 		|If you not use "catalogsLinkAttr", you can set field name of "name" element in catalogs class directly here
+|catalogsUpdate| 	parameter| 	common| 	|	true| 	boolean| 		|If you set "catalogsLinkAttr" or "catalogsLinkName", catalogs may be autoupdated, if "catalogsUpdate" = true. If is that - in catalogs classes may be created empty elements with new "name" field values.
 |classField 	|parameter 	|common|false  		|class 	|java.lang.String | 		|Your "@class" renamed to classField value
 |fetchAllEmbedded 	|parameter 	|common|false  		|true 	|boolean | 		|Fetch all embedded(not linked) objects, ignore "maxDepth". Only for "map" type.
 |fetchPlan 	|parameter 	|common|false  			| |java.lang.String | 		|Set fetch plan (view OrientDB documentation, like http://orientdb.com/docs/2.0/orientdb.wiki/Fetching-Strategies.html)
@@ -77,6 +80,7 @@ This endpoint just load input Map`s and trying to create new objects from them.
 |inputAsOClass 	|parameter 	|consumer|false 		| |java.lang.String 		| |Rewrite "@class" field value in root document(s)
 |makeNew 	|parameter 	|consumer|false  		|true 	|boolean 		| |Clear ODocuments RID`s in PRELOAD phase BEFORE save.Works only if ***preload=true***
 |preload 	|parameter 	|consumer|false 		|false 	|boolean 		| |Trying to save ODocument from input data BEFORE query
+
 
 ##Input
 
