@@ -70,13 +70,13 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	//catalogs
 	@UriParam(defaultValue = "orienteer.prop.name")
-	private String catalogsLinkAttr;
+	private String catalogsLinkAttr = "orienteer.prop.name";
 	
 	@UriParam(defaultValue = "name")
-	private String catalogsLinkName;
+	private String catalogsLinkName = "name";
 	
 	@UriParam(defaultValue = "true")
-	private boolean catalogsUpdate;
+	private boolean catalogsUpdate = true;
 
 	protected OrientDBEndpoint(String endpointUri,Component component,String remaining, Map<String, Object> parameters ) {
 		super(endpointUri,component);
