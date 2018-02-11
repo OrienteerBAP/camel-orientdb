@@ -35,7 +35,7 @@
 		<developer>
 			<id>owner</id>
 			<name>Ilia Naryzhny</name>
-			<email>barm@mail.ru</email>
+			<email>phantom@ydn.ru</email>
 		</developer>
 		<developer>
 			<id>dev</id>
@@ -158,13 +158,20 @@
         <version>2.6</version>
         <configuration>
           <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+    <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-release-plugin</artifactId>
+	<version>2.5.3</version>
+	<configuration>
 	    <autoVersionSubmodules>true</autoVersionSubmodules>
-	    <useReleaseProfile>false</useReleaseProfile>
 	    <releaseProfiles>release</releaseProfiles>
 	    <goals>deploy</goals>
 	    <tagNameFormat>v@{project.version}</tagNameFormat>
-        </configuration>
-      </plugin>
+	    <arguments>-Pskip-integration-tests</arguments>
+	</configuration>
+    </plugin>
 
       <!-- generate components meta-data and validate component includes documentation etc -->
       <plugin>
