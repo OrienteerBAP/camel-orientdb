@@ -54,14 +54,15 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <orientdb.version>2.2.30</orientdb.version>
-    <camel.version>2.17.6</camel.version>
+    <camel.version>2.23.3</camel.version>
+    <camel.core.version>2.24.1</camel.core.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-core</artifactId>
-      <version>${camel.version}</version>
+      <version>${camel.core.version}</version>
     </dependency>
 	<dependency>
 		<groupId>com.orientechnologies</groupId>
@@ -177,7 +178,7 @@
       <plugin>
         <groupId>org.apache.camel</groupId>
         <artifactId>camel-package-maven-plugin</artifactId>
-        <version>2.17.3</version>
+	<version>${camel.version}</version>
         <executions>
           <execution>
             <id>prepare</id>
