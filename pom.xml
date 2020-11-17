@@ -6,7 +6,7 @@
   <groupId>org.orienteer.camel.component</groupId>
   <artifactId>camel-orientdb</artifactId>
   <packaging>bundle</packaging>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <name>camel-orientdb</name>
   <description>Camel OrientDB Component</description>
   <url>https://github.com/OrienteerBAP/camel-orientdb</url>
@@ -14,7 +14,7 @@
 	<url>https://github.com/OrienteerBAP/camel-orientdb</url>
 	<connection>scm:git:ssh://github.com/OrienteerBAP/camel-orientdb.git</connection>
 	<developerConnection>scm:git:ssh://git@github.com/OrienteerBAP/camel-orientdb.git</developerConnection>
-	<tag>v1.1</tag>
+	<tag>HEAD</tag>
     </scm>
 
     <issueManagement>
