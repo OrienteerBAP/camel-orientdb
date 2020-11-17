@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.apache.camel.Component;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
@@ -17,15 +18,9 @@ import org.apache.camel.spi.UriPath;
 import org.apache.camel.tools.apt.helper.Strings;
 
 import com.orientechnologies.orient.core.db.ODatabase;
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.OPartitionedDatabasePoolFactory;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTxPooled;
 import com.orientechnologies.orient.core.id.ORID;
-import com.orientechnologies.orient.core.record.ORecord;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.record.impl.ODocumentHelper;
 
 
 /**
@@ -118,9 +113,9 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	//should be called to open new connection
 	//@SuppressWarnings("resource")
 	public ODatabase<?> databaseOpen() throws Exception{
-		String url = getCamelContext().getProperty(OrientDBComponent.DB_URL);
-		String username = getCamelContext().getProperty(OrientDBComponent.DB_USERNAME);
-		String password = getCamelContext().getProperty(OrientDBComponent.DB_PASSWORD);
+		String url = getCamelContext().getGlobalOption(OrientDBComponent.DB_URL);
+		String username = getCamelContext().getGlobalOption(OrientDBComponent.DB_USERNAME);
+		String password = getCamelContext().getGlobalOption(OrientDBComponent.DB_PASSWORD);
 		
 		if(url!=null && username!=null) {
 			return dbPool.get(url, username, password).acquire();
@@ -264,6 +259,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Set fetch plan (view orientdb documentation, like http://orientdb.com/docs/2.0/orientdb.wiki/Fetching-Strategies.html)
+	 * @param fetchPlan - fetch plan to be used
 	 */
 	public void setFetchPlan(String fetchPlan) {
 		this.fetchPlan = fetchPlan;
@@ -275,6 +271,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Rewrite "@class" field value in root document(s) 
+	 * @param inputAsOClass - OClass to be used for root document
 	 */
 	public void setInputAsOClass(String inputAsOClass) {
 		this.inputAsOClass = inputAsOClass;
@@ -285,7 +282,8 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	}
 
 	/**
-	 * Save ODocument from input data BEFORE query   
+	 * Save ODocument from input data BEFORE query  
+	 * @param preload - if true - ODocument will be saved 
 	 */
 	public void setPreload(boolean preload) {
 		this.preload = preload;
@@ -297,6 +295,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Clear ODocuments RID`s in PRELOAD phase BEFORE save
+	 * @param makeNew - should ODocument created from scratch to be reused
 	 */
 	public void setMakeNew(boolean makeNew) {
 		this.makeNew = makeNew;
@@ -308,6 +307,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Output data type of single row.  
+	 * @param outputType - type of the output. Check {@link OrientDBCamelDataType} for details
 	 */
 	public void setOutputType(OrientDBCamelDataType outputType) {
 		this.outputType = outputType;
@@ -319,6 +319,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Max fetch depth. Only for "map" type 
+	 * @param maxDepth - depth of a recurrent conversions to map
 	 */
 	public void setMaxDepth(int maxDepth) {
 		this.maxDepth = maxDepth;
@@ -330,6 +331,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Fetch all embedded(not linked) objects, ignore "maxDepth". Only for "map" type. 
+	 * @param fetchAllEmbedded - if true - embedded documents will be also converted to maps
 	 */
 	public void setFetchAllEmbedded(boolean fetchAllEmbedded) {
 		this.fetchAllEmbedded = fetchAllEmbedded;
@@ -341,6 +343,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 
 	/**
 	 * Your "@rid" renamed to recordIdField value  
+	 * @param recordIdField - name of the field for RID of a document. Default value is "rid"
 	 */
 	public void setRecordIdField(String recordIdField) {
 		this.recordIdField = recordIdField;
@@ -351,7 +354,8 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	}
 
 	/**
-	 * Your "@class" renamed to classField value  
+	 * Your "@class" renamed to classField value 
+	 * @param classField - name of the field for OClass of a document. Default value is "class" 
 	 */
 	public void setClassField(String classField) {
 		this.classField = classField;
@@ -365,7 +369,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	 * Name of your custom attribute,
 	 * linked to catalog class and containing name of field in this class,
 	 * associated to name of element of this class 
-	 * 
+	 * @param catalogsLinkAttr - name of property on a linkedClass which will be used for mapping
 	 */
 	public void setCatalogsLinkAttr(String catalogsLinkAttr) {
 		this.catalogsLinkAttr = catalogsLinkAttr;
@@ -378,7 +382,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	/**
 	 * If you not use "catalogsLinkAttr",
 	 * you can set field name of "name" element in catalogs class directly here
-	 * 
+	 * @param catalogsLinkName - name of property of linkedClass which will be used for mapping
 	 */
 	public void setCatalogsLinkName(String catalogsLinkName) {
 		this.catalogsLinkName = catalogsLinkName;
@@ -392,6 +396,7 @@ public class OrientDBEndpoint extends DefaultEndpoint {
 	 * If you set "catalogsLinkAttr" or "catalogsLinkName", catalogs may be autoupdated,
 	 * if "catalogsUpdate" = true.
 	 * If is that - in catalogs classes may be created empty elements with new "name" field values.
+	 * @param catalogsUpdate - if yes - final catalog can be updated per data which being loaded
 	 */
 	
 	public void setCatalogsUpdate(boolean catalogsUpdate) {
