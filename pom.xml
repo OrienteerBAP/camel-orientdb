@@ -55,7 +55,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <orientdb.version>2.2.37</orientdb.version>
     <camel.version>2.25.2</camel.version>
-    <camel.core.version>2.25.2</camel.core.version>
+    <camel.core.version>3.2.0</camel.core.version>
   </properties>
 
   <dependencies>
